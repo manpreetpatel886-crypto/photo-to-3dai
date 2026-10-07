@@ -1,165 +1,541 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method not allowed"
-    });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo to 3D AI</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #090a0d;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  background: #111216;
+  border-bottom: 1px solid #292b31;
+}
+
+.logo {
+  font-size: 21px;
+  font-weight: bold;
+}
+
+.logo span {
+  color: #9b7cff;
+}
+
+.credits {
+  background: #24252b;
+  padding: 9px 14px;
+  border-radius: 22px;
+  font-size: 13px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 25px 15px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 30px;
+  margin: 10px 0;
+}
+
+.subtitle {
+  text-align: center;
+  color: #999;
+  margin-bottom: 25px;
+}
+
+.panel {
+  background: #15161b;
+  border: 1px solid #292b31;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  color: #bbb;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+input[type="password"],
+input[type="file"] {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  border: 1px solid #393b43;
+  background: #0d0e11;
+  color: white;
+  margin-bottom: 18px;
+}
+
+.filebox {
+  border: 2px dashed #454751;
+  border-radius: 15px;
+  padding: 28px 15px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.filebox:hover {
+  border-color: #8d70ff;
+}
+
+#preview {
+  max-width: 100%;
+  max-height: 260px;
+  margin-top: 15px;
+  border-radius: 12px;
+  display: none;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 15px;
+  background: linear-gradient(90deg, #7658ff, #a276ff);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.status {
+  text-align: center;
+  color: #aaa;
+  margin: 15px 0;
+  min-height: 22px;
+}
+
+.viewer {
+  height: 620px;
+  background: radial-gradient(circle at center, #303238, #111216 70%);
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  display: none;
+}
+
+.viewer-title {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 5;
+  background: rgba(20,20,24,.85);
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.viewer-title small {
+  display: block;
+  color: #999;
+  margin-top: 4px;
+}
+
+model-viewer {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px;
+  background: rgba(12,13,16,.85);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.download {
+  width: auto;
+  padding: 10px 18px;
+  background: #775cff;
+}
+
+.note {
+  font-size: 12px;
+  color: #777;
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+@media(max-width:600px) {
+  h1 {
+    font-size: 24px;
   }
 
+  .viewer {
+    height: 520px;
+  }
+}
+</style>
+
+<!-- 3D viewer -->
+<script type="module"
+src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
+</script>
+
+</head>
+
+<body>
+
+<header>
+  <div class="logo">Photo<span>2</span>3D AI</div>
+  <div class="credits">AI 3D Generator</div>
+</header>
+
+<div class="container">
+
+  <h1>Turn Your Photo Into 3D</h1>
+
+  <div class="subtitle">
+    Upload an image and generate a detailed 3D model.
+  </div>
+
+  <div class="panel">
+
+    <label>Tripo API Key</label>
+
+    <input
+      id="apiKey"
+      type="password"
+      placeholder="Paste your Tripo API key"
+      autocomplete="off"
+    >
+
+    <label>Upload Photo</label>
+
+    <div class="filebox" onclick="document.getElementById('photo').click()">
+      <div>📸 Tap to choose an image</div>
+      <div style="color:#777;font-size:13px;margin-top:8px">
+        PNG, JPG or WebP
+      </div>
+
+      <img id="preview">
+    </div>
+
+    <input
+      id="photo"
+      type="file"
+      accept="image/png,image/jpeg,image/webp"
+      style="display:none"
+    >
+
+    <br>
+
+    <button id="generateBtn">
+      ✨ Generate 3D Model
+    </button>
+
+    <div class="status" id="status"></div>
+
+    <div class="note">
+      Your API key is used only in this browser session and is not written into this page.
+      For a public production website, use a server-side backend to protect the key.
+    </div>
+
+  </div>
+
+  <div class="viewer" id="viewer">
+
+    <div class="viewer-title">
+      <b>3D Model</b>
+      <small>Drag to rotate • Pinch to zoom</small>
+    </div>
+
+    <model-viewer
+      id="model"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      exposure="1"
+      environment-image="neutral"
+      interaction-prompt="auto"
+      camera-orbit="45deg 65deg 2.5m">
+    </model-viewer>
+
+    <div class="bottom">
+      <span>Generated with Tripo AI</span>
+
+      <a
+        id="download"
+        class="download"
+        href="#"
+        target="_blank"
+        style="color:white;text-decoration:none;border-radius:10px">
+        Download
+      </a>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const BASE_URL = "https://openapi.tripo3d.ai/v3";
+
+const apiKeyInput = document.getElementById("apiKey");
+const photoInput = document.getElementById("photo");
+const preview = document.getElementById("preview");
+const generateBtn = document.getElementById("generateBtn");
+const statusBox = document.getElementById("status");
+const viewer = document.getElementById("viewer");
+const modelViewer = document.getElementById("model");
+const downloadBtn = document.getElementById("download");
+
+
+photoInput.addEventListener("change", () => {
+
+  const file = photoInput.files[0];
+
+  if (!file) return;
+
+  if (file.size > 20 * 1024 * 1024) {
+    statusBox.textContent = "Image must be smaller than 20 MB.";
+    photoInput.value = "";
+    return;
+  }
+
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = "block";
+
+  statusBox.textContent = "Photo selected.";
+
+});
+
+
+generateBtn.addEventListener("click", generate3D);
+
+
+async function generate3D() {
+
+  const apiKey = apiKeyInput.value.trim();
+  const file = photoInput.files[0];
+
+  if (!apiKey) {
+    statusBox.textContent = "Please enter your Tripo API key.";
+    return;
+  }
+
+  if (!file) {
+    statusBox.textContent = "Please select a photo first.";
+    return;
+  }
+
+  generateBtn.disabled = true;
+  viewer.style.display = "none";
+
   try {
-    const apiKey = process.env.TRIPO_API_KEY;
 
-    if (!apiKey) {
-      return res.status(500).json({
-        error: "TRIPO_API_KEY is not configured on the server."
-      });
-    }
+    // --------------------------------
+    // STEP 1 — Upload image
+    // --------------------------------
 
-    const body = req.body || {};
+    statusBox.textContent = "Uploading photo...";
 
-    if (!body.image) {
-      return res.status(400).json({
-        error: "Image is required."
-      });
-    }
-
-    const base64 = body.image;
-
-    /*
-      Safety limit for our server request.
-      The browser compresses the image before sending it.
-    */
-    if (base64.length > 5_500_000) {
-      return res.status(413).json({
-        error: "Image is too large. Please choose a smaller photo."
-      });
-    }
-
-    const mimeType =
-      body.mimeType || "image/jpeg";
-
-    const binary = Buffer.from(
-      base64,
-      "base64"
-    );
-
-    /*
-      Step 1:
-      Upload image to Tripo and get file_token.
-    */
-
-    const form = new FormData();
-
-    const blob = new Blob(
-      [binary],
-      { type: mimeType }
-    );
-
-    form.append(
-      "file",
-      blob,
-      "photo.jpg"
-    );
+    const formData = new FormData();
+    formData.append("file", file, file.name);
 
     const uploadResponse = await fetch(
-      "https://openapi.tripo3d.ai/v3/files",
+      `${BASE_URL}/files`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`
+          "Authorization": `Bearer ${apiKey}`
         },
-        body: form
+        body: formData
       }
     );
 
-    const uploadData =
-      await uploadResponse.json();
+    const uploadData = await uploadResponse.json();
 
-    if (
-      !uploadResponse.ok ||
-      uploadData.code !== 0
-    ) {
-      return res.status(500).json({
-        error:
-          uploadData.message ||
-          "Tripo image upload failed."
-      });
+    if (!uploadResponse.ok || uploadData.code !== 0) {
+      throw new Error(
+        uploadData.message ||
+        "Image upload failed."
+      );
     }
 
-    const fileToken =
-      uploadData.data.file_token;
+    const fileToken = uploadData.data.file_token;
 
-    /*
-      Step 2:
-      Start high-quality image-to-3D generation.
-    */
 
-    const generationResponse =
-      await fetch(
-        "https://openapi.tripo3d.ai/v3/generation/image-to-model",
+    // --------------------------------
+    // STEP 2 — Create 3D task
+    // --------------------------------
+
+    statusBox.textContent = "AI is creating your 3D model...";
+
+    const taskResponse = await fetch(
+      `${BASE_URL}/generation/image-to-model`,
+      {
+        method: "POST",
+
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          input: fileToken,
+
+          model: "v3.1-20260211",
+
+          texture: true,
+
+          pbr: true,
+
+          texture_quality: "detailed",
+
+          enable_image_autofix: true,
+
+          orientation: "align_image"
+        })
+      }
+    );
+
+
+    const taskData = await taskResponse.json();
+
+    if (!taskResponse.ok || taskData.code !== 0) {
+      throw new Error(
+        taskData.message ||
+        "Could not create 3D task."
+      );
+    }
+
+    const taskId = taskData.data.task_id;
+
+
+    // --------------------------------
+    // STEP 3 — Wait for model
+    // --------------------------------
+
+    let finished = false;
+
+    while (!finished) {
+
+      await new Promise(
+        resolve => setTimeout(resolve, 3000)
+      );
+
+      const checkResponse = await fetch(
+        `${BASE_URL}/tasks/${taskId}`,
         {
-          method: "POST",
-
           headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json"
-          },
-
-          body: JSON.stringify({
-            input: fileToken,
-
-            /*
-              Current high-precision Tripo model.
-            */
-            model: "tripo-v3.1",
-
-            /*
-              Keep texture and PBR enabled
-              for a more realistic result.
-            */
-            texture: true,
-            pbr: true,
-
-            /*
-              Detailed texture quality.
-            */
-            texture_quality: "detailed",
-
-            /*
-              Ask Tripo to improve the input image
-              alignment where applicable.
-            */
-            enable_image_autofix: true,
-            orientation: "align_image"
-          })
+            "Authorization": `Bearer ${apiKey}`
+          }
         }
       );
 
-    const generationData =
-      await generationResponse.json();
+      const checkData = await checkResponse.json();
 
-    if (
-      !generationResponse.ok ||
-      generationData.code !== 0
-    ) {
-      return res.status(500).json({
-        error:
-          generationData.message ||
-          "Tripo 3D generation could not be started."
-      });
+      if (!checkResponse.ok || checkData.code !== 0) {
+        throw new Error(
+          checkData.message ||
+          "Could not check task."
+        );
+      }
+
+      const task = checkData.data;
+
+      const progress = task.progress || 0;
+
+      statusBox.textContent =
+        `Creating 3D model... ${progress}%`;
+
+
+      if (task.status === "success") {
+
+        finished = true;
+
+        const modelUrl =
+          task.output.model_url;
+
+        if (!modelUrl) {
+          throw new Error(
+            "3D model URL was not returned."
+          );
+        }
+
+        // --------------------------------
+        // STEP 4 — Show 3D model
+        // --------------------------------
+
+        modelViewer.src = modelUrl;
+
+        downloadBtn.href = modelUrl;
+
+        viewer.style.display = "block";
+
+        statusBox.textContent =
+          "✅ 3D model ready!";
+
+        viewer.scrollIntoView({
+          behavior: "smooth"
+        });
+
+      }
+
+
+      if (
+        task.status === "failed" ||
+        task.status === "cancelled" ||
+        task.status === "banned"
+      ) {
+
+        throw new Error(
+          `3D generation ${task.status}.`
+        );
+
+      }
+
     }
 
-    return res.status(200).json({
-      taskId:
-        generationData.data.task_id
-    });
-
   } catch (error) {
+
     console.error(error);
 
-    return res.status(500).json({
-      error:
-        error.message ||
-        "Server error."
-    });
+    statusBox.textContent =
+      "❌ " + error.message;
+
+  } finally {
+
+    generateBtn.disabled = false;
+
   }
+
 }
+
+</script>
+
+</body>
+</html>
