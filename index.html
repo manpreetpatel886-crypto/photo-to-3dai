@@ -69,24 +69,6 @@ h1 {
   margin-bottom: 20px;
 }
 
-label {
-  display: block;
-  color: #bbb;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-input[type="password"],
-input[type="file"] {
-  width: 100%;
-  padding: 13px;
-  border-radius: 10px;
-  border: 1px solid #393b43;
-  background: #0d0e11;
-  color: white;
-  margin-bottom: 18px;
-}
-
 .filebox {
   border: 2px dashed #454751;
   border-radius: 15px;
@@ -178,6 +160,9 @@ model-viewer {
   width: auto;
   padding: 10px 18px;
   background: #775cff;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
 }
 
 .note {
@@ -198,7 +183,6 @@ model-viewer {
 }
 </style>
 
-<!-- 3D viewer -->
 <script type="module"
 src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
 </script>
@@ -222,24 +206,19 @@ src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.j
 
   <div class="panel">
 
-    <label>Tripo API Key</label>
-
-    <input
-      id="apiKey"
-      type="password"
-      placeholder="Paste your Tripo API key"
-      autocomplete="off"
-    >
-
     <label>Upload Photo</label>
 
-    <div class="filebox" onclick="document.getElementById('photo').click()">
+    <div class="filebox"
+         onclick="document.getElementById('photo').click()">
+
       <div>📸 Tap to choose an image</div>
+
       <div style="color:#777;font-size:13px;margin-top:8px">
         PNG, JPG or WebP
       </div>
 
       <img id="preview">
+
     </div>
 
     <input
@@ -258,8 +237,8 @@ src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.j
     <div class="status" id="status"></div>
 
     <div class="note">
-      Your API key is used only in this browser session and is not written into this page.
-      For a public production website, use a server-side backend to protect the key.
+      Your API key is securely stored on the server.
+      It is never exposed in this website.
     </div>
 
   </div>
@@ -283,16 +262,17 @@ src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.j
     </model-viewer>
 
     <div class="bottom">
+
       <span>Generated with Tripo AI</span>
 
       <a
         id="download"
         class="download"
         href="#"
-        target="_blank"
-        style="color:white;text-decoration:none;border-radius:10px">
+        target="_blank">
         Download
       </a>
+
     </div>
 
   </div>
@@ -301,17 +281,38 @@ src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.j
 
 <script>
 
-const BASE_URL = "https://openapi.tripo3d.ai/v3";
+/* =====================================================
+   IMPORTANT
+   Put your Cloudflare Worker URL here.
+   Do NOT put your Tripo API key here.
+   ===================================================== */
 
-const apiKeyInput = document.getElementById("apiKey");
-const photoInput = document.getElementById("photo");
-const preview = document.getElementById("preview");
-const generateBtn = document.getElementById("generateBtn");
-const statusBox = document.getElementById("status");
-const viewer = document.getElementById("viewer");
-const modelViewer = document.getElementById("model");
-const downloadBtn = document.getElementById("download");
+const BASE_URL = "https://muddy-paper-4f8b.manpreetpatel886.workers.dev";
 
+
+const photoInput =
+  document.getElementById("photo");
+
+const preview =
+  document.getElementById("preview");
+
+const generateBtn =
+  document.getElementById("generateBtn");
+
+const statusBox =
+  document.getElementById("status");
+
+const viewer =
+  document.getElementById("viewer");
+
+const modelViewer =
+  document.getElementById("model");
+
+const downloadBtn =
+  document.getElementById("download");
+
+
+/* Photo selection */
 
 photoInput.addEventListener("change", () => {
 
@@ -320,184 +321,272 @@ photoInput.addEventListener("change", () => {
   if (!file) return;
 
   if (file.size > 20 * 1024 * 1024) {
-    statusBox.textContent = "Image must be smaller than 20 MB.";
+
+    statusBox.textContent =
+      "Image must be smaller than 20 MB.";
+
     photoInput.value = "";
+
     return;
   }
 
-  preview.src = URL.createObjectURL(file);
+  preview.src =
+    URL.createObjectURL(file);
+
   preview.style.display = "block";
 
-  statusBox.textContent = "Photo selected.";
+  statusBox.textContent =
+    "Photo selected.";
 
 });
 
 
-generateBtn.addEventListener("click", generate3D);
+/* Generate button */
 
+generateBtn.addEventListener(
+  "click",
+  generate3D
+);
+
+
+/* Main generation function */
 
 async function generate3D() {
 
-  const apiKey = apiKeyInput.value.trim();
-  const file = photoInput.files[0];
+  const file =
+    photoInput.files[0];
 
-  if (!apiKey) {
-    statusBox.textContent = "Please enter your Tripo API key.";
+  if (!file) {
+
+    statusBox.textContent =
+      "Please select a photo first.";
+
     return;
   }
 
-  if (!file) {
-    statusBox.textContent = "Please select a photo first.";
+  if (
+    !BASE_URL ||
+    BASE_URL.includes("PASTE-YOUR")
+  ) {
+
+    statusBox.textContent =
+      "Cloudflare Worker URL is not configured.";
+
     return;
   }
 
   generateBtn.disabled = true;
+
   viewer.style.display = "none";
+
 
   try {
 
-    // --------------------------------
-    // STEP 1 — Upload image
-    // --------------------------------
+    /* =========================================
+       STEP 1 — Upload image
+       ========================================= */
 
-    statusBox.textContent = "Uploading photo...";
+    statusBox.textContent =
+      "Uploading photo...";
 
-    const formData = new FormData();
-    formData.append("file", file, file.name);
 
-    const uploadResponse = await fetch(
-      `${BASE_URL}/files`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`
-        },
-        body: formData
-      }
+    const formData =
+      new FormData();
+
+    formData.append(
+      "file",
+      file,
+      file.name
     );
 
-    const uploadData = await uploadResponse.json();
 
-    if (!uploadResponse.ok || uploadData.code !== 0) {
+    const uploadResponse =
+      await fetch(
+        `${BASE_URL}/files`,
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+
+    const uploadData =
+      await uploadResponse.json();
+
+
+    if (
+      !uploadResponse.ok ||
+      uploadData.code !== 0
+    ) {
+
       throw new Error(
         uploadData.message ||
         "Image upload failed."
       );
+
     }
 
-    const fileToken = uploadData.data.file_token;
+
+    const fileToken =
+      uploadData.data.file_token;
 
 
-    // --------------------------------
-    // STEP 2 — Create 3D task
-    // --------------------------------
+    /* =========================================
+       STEP 2 — Create 3D task
+       ========================================= */
 
-    statusBox.textContent = "AI is creating your 3D model...";
-
-    const taskResponse = await fetch(
-      `${BASE_URL}/generation/image-to-model`,
-      {
-        method: "POST",
-
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          input: fileToken,
-
-          model: "v3.1-20260211",
-
-          texture: true,
-
-          pbr: true,
-
-          texture_quality: "detailed",
-
-          enable_image_autofix: true,
-
-          orientation: "align_image"
-        })
-      }
-    );
+    statusBox.textContent =
+      "AI is creating your 3D model...";
 
 
-    const taskData = await taskResponse.json();
+    const taskResponse =
+      await fetch(
+        `${BASE_URL}/generation/image-to-model`,
+        {
+          method: "POST",
 
-    if (!taskResponse.ok || taskData.code !== 0) {
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            input: fileToken,
+
+            model:
+              "v3.1-20260211",
+
+            texture: true,
+
+            pbr: true,
+
+            texture_quality:
+              "detailed",
+
+            enable_image_autofix:
+              true,
+
+            orientation:
+              "align_image"
+
+          })
+        }
+      );
+
+
+    const taskData =
+      await taskResponse.json();
+
+
+    if (
+      !taskResponse.ok ||
+      taskData.code !== 0
+    ) {
+
       throw new Error(
         taskData.message ||
         "Could not create 3D task."
       );
+
     }
 
-    const taskId = taskData.data.task_id;
+
+    const taskId =
+      taskData.data.task_id;
 
 
-    // --------------------------------
-    // STEP 3 — Wait for model
-    // --------------------------------
+    /* =========================================
+       STEP 3 — Check task progress
+       ========================================= */
 
     let finished = false;
+
 
     while (!finished) {
 
       await new Promise(
-        resolve => setTimeout(resolve, 3000)
+        resolve =>
+          setTimeout(resolve, 3000)
       );
 
-      const checkResponse = await fetch(
-        `${BASE_URL}/tasks/${taskId}`,
-        {
-          headers: {
-            "Authorization": `Bearer ${apiKey}`
-          }
-        }
-      );
 
-      const checkData = await checkResponse.json();
+      const checkResponse =
+        await fetch(
+          `${BASE_URL}/tasks/${taskId}`
+        );
 
-      if (!checkResponse.ok || checkData.code !== 0) {
+
+      const checkData =
+        await checkResponse.json();
+
+
+      if (
+        !checkResponse.ok ||
+        checkData.code !== 0
+      ) {
+
         throw new Error(
           checkData.message ||
           "Could not check task."
         );
+
       }
 
-      const task = checkData.data;
 
-      const progress = task.progress || 0;
+      const task =
+        checkData.data;
+
+
+      const progress =
+        task.progress || 0;
+
 
       statusBox.textContent =
         `Creating 3D model... ${progress}%`;
 
 
-      if (task.status === "success") {
+      /* Success */
+
+      if (
+        task.status === "success"
+      ) {
 
         finished = true;
+
 
         const modelUrl =
           task.output.model_url;
 
+
         if (!modelUrl) {
+
           throw new Error(
             "3D model URL was not returned."
           );
+
         }
 
-        // --------------------------------
-        // STEP 4 — Show 3D model
-        // --------------------------------
 
-        modelViewer.src = modelUrl;
+        /* =====================================
+           STEP 4 — Show model
+           ===================================== */
 
-        downloadBtn.href = modelUrl;
+        modelViewer.src =
+          modelUrl;
 
-        viewer.style.display = "block";
+
+        downloadBtn.href =
+          modelUrl;
+
+
+        viewer.style.display =
+          "block";
+
 
         statusBox.textContent =
           "✅ 3D model ready!";
+
 
         viewer.scrollIntoView({
           behavior: "smooth"
@@ -505,6 +594,8 @@ async function generate3D() {
 
       }
 
+
+      /* Failed */
 
       if (
         task.status === "failed" ||
@@ -520,16 +611,23 @@ async function generate3D() {
 
     }
 
+
   } catch (error) {
 
     console.error(error);
 
     statusBox.textContent =
-      "❌ " + error.message;
+      "❌ " +
+      (
+        error.message ||
+        "Something went wrong."
+      );
+
 
   } finally {
 
-    generateBtn.disabled = false;
+    generateBtn.disabled =
+      false;
 
   }
 
