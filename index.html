@@ -3,635 +3,343 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Photo to 3D AI</title>
+<title>Photo2 3D AI</title>
 
-<style>
-* {
-  box-sizing: border-box;
-}
+<script type="module">
+import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client@1.3.0/+esm";
 
-body {
-  margin: 0;
-  background: #090a0d;
-  color: white;
-  font-family: Arial, sans-serif;
-}
-
-header {
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 18px;
-  background: #111216;
-  border-bottom: 1px solid #292b31;
-}
-
-.logo {
-  font-size: 21px;
-  font-weight: bold;
-}
-
-.logo span {
-  color: #9b7cff;
-}
-
-.credits {
-  background: #24252b;
-  padding: 9px 14px;
-  border-radius: 22px;
-  font-size: 13px;
-}
-
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 25px 15px;
-}
-
-h1 {
-  text-align: center;
-  font-size: 30px;
-  margin: 10px 0;
-}
-
-.subtitle {
-  text-align: center;
-  color: #999;
-  margin-bottom: 25px;
-}
-
-.panel {
-  background: #15161b;
-  border: 1px solid #292b31;
-  border-radius: 18px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.filebox {
-  border: 2px dashed #454751;
-  border-radius: 15px;
-  padding: 28px 15px;
-  text-align: center;
-  cursor: pointer;
-}
-
-.filebox:hover {
-  border-color: #8d70ff;
-}
-
-#preview {
-  max-width: 100%;
-  max-height: 260px;
-  margin-top: 15px;
-  border-radius: 12px;
-  display: none;
-}
-
-button {
-  width: 100%;
-  border: 0;
-  border-radius: 12px;
-  padding: 15px;
-  background: linear-gradient(90deg, #7658ff, #a276ff);
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.status {
-  text-align: center;
-  color: #aaa;
-  margin: 15px 0;
-  min-height: 22px;
-}
-
-.viewer {
-  height: 620px;
-  background: radial-gradient(circle at center, #303238, #111216 70%);
-  border-radius: 18px;
-  overflow: hidden;
-  position: relative;
-  display: none;
-}
-
-.viewer-title {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  z-index: 5;
-  background: rgba(20,20,24,.85);
-  padding: 12px 16px;
-  border-radius: 12px;
-}
-
-.viewer-title small {
-  display: block;
-  color: #999;
-  margin-top: 4px;
-}
-
-model-viewer {
-  width: 100%;
-  height: 100%;
-  background: transparent;
-}
-
-.bottom {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 15px;
-  background: rgba(12,13,16,.85);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.download {
-  width: auto;
-  padding: 10px 18px;
-  background: #775cff;
-  color: white;
-  text-decoration: none;
-  border-radius: 10px;
-}
-
-.note {
-  font-size: 12px;
-  color: #777;
-  margin-top: 12px;
-  line-height: 1.5;
-}
-
-@media(max-width:600px) {
-  h1 {
-    font-size: 24px;
-  }
-
-  .viewer {
-    height: 520px;
-  }
-}
-</style>
-
-<script type="module"
-src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
+window.gradioClient = Client;
+window.handleGradioFile = handle_file;
 </script>
 
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family:Arial,sans-serif;
+  background:#080b12;
+  color:white;
+  min-height:100vh;
+}
+
+header{
+  padding:20px;
+  text-align:center;
+  border-bottom:1px solid #202633;
+}
+
+.logo{
+  font-size:25px;
+  font-weight:bold;
+}
+
+.badge{
+  display:inline-block;
+  margin-top:8px;
+  padding:6px 12px;
+  border-radius:20px;
+  background:#171d2b;
+  color:#8fb4ff;
+  font-size:12px;
+}
+
+.container{
+  max-width:800px;
+  margin:auto;
+  padding:35px 18px;
+}
+
+h1{
+  text-align:center;
+  font-size:38px;
+  margin-bottom:10px;
+}
+
+.subtitle{
+  text-align:center;
+  color:#9da6b8;
+  margin-bottom:30px;
+}
+
+.upload{
+  border:2px dashed #394355;
+  border-radius:18px;
+  padding:30px 20px;
+  text-align:center;
+  background:#0d111a;
+  cursor:pointer;
+}
+
+.upload:hover{
+  border-color:#6d8cff;
+}
+
+.upload input{
+  display:none;
+}
+
+#preview{
+  max-width:100%;
+  max-height:350px;
+  border-radius:12px;
+  margin-top:20px;
+  display:none;
+}
+
+button{
+  width:100%;
+  margin-top:20px;
+  padding:16px;
+  border:0;
+  border-radius:12px;
+  background:#5d7cff;
+  color:white;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+#status{
+  text-align:center;
+  margin-top:18px;
+  color:#aeb8ca;
+  min-height:25px;
+}
+
+#viewerBox{
+  display:none;
+  margin-top:30px;
+  background:#0d111a;
+  border-radius:18px;
+  padding:15px;
+}
+
+model-viewer{
+  width:100%;
+  height:500px;
+  background:#111722;
+  border-radius:14px;
+}
+
+.download{
+  display:block;
+  text-align:center;
+  margin-top:15px;
+  padding:14px;
+  background:#20283a;
+  color:white;
+  text-decoration:none;
+  border-radius:10px;
+}
+
+footer{
+  text-align:center;
+  padding:30px 15px;
+  color:#687286;
+  font-size:12px;
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <div class="logo">Photo<span>2</span>3D AI</div>
-  <div class="credits">AI 3D Generator</div>
+  <div class="logo">Photo2 3D AI</div>
+  <div class="badge">FREE AI 3D GENERATOR</div>
 </header>
 
 <div class="container">
 
-  <h1>Turn Your Photo Into 3D</h1>
+<h1>Turn Your Photo Into 3D</h1>
 
-  <div class="subtitle">
-    Upload an image and generate a detailed 3D model.
-  </div>
+<p class="subtitle">
+Upload one photo and generate a 3D model.
+</p>
 
-  <div class="panel">
+<label class="upload">
+  <strong>📷 Choose Photo</strong>
+  <br><br>
+  <span>Tap here to select an image</span>
+  <input id="fileInput" type="file" accept="image/*">
+  <img id="preview">
+</label>
 
-    <label>Upload Photo</label>
+<button id="generateBtn" disabled>
+  Generate 3D Model
+</button>
 
-    <div class="filebox"
-         onclick="document.getElementById('photo').click()">
+<div id="status"></div>
 
-      <div>📸 Tap to choose an image</div>
+<div id="viewerBox">
 
-      <div style="color:#777;font-size:13px;margin-top:8px">
-        PNG, JPG or WebP
-      </div>
+  <model-viewer
+    id="viewer"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1"
+    exposure="1"
+    ar>
+  </model-viewer>
 
-      <img id="preview">
-
-    </div>
-
-    <input
-      id="photo"
-      type="file"
-      accept="image/png,image/jpeg,image/webp"
-      style="display:none"
-    >
-
-    <br>
-
-    <button id="generateBtn">
-      ✨ Generate 3D Model
-    </button>
-
-    <div class="status" id="status"></div>
-
-    <div class="note">
-      Your API key is securely stored on the server.
-      It is never exposed in this website.
-    </div>
-
-  </div>
-
-  <div class="viewer" id="viewer">
-
-    <div class="viewer-title">
-      <b>3D Model</b>
-      <small>Drag to rotate • Pinch to zoom</small>
-    </div>
-
-    <model-viewer
-      id="model"
-      camera-controls
-      auto-rotate
-      shadow-intensity="1"
-      exposure="1"
-      environment-image="neutral"
-      interaction-prompt="auto"
-      camera-orbit="45deg 65deg 2.5m">
-    </model-viewer>
-
-    <div class="bottom">
-
-      <span>Generated with Tripo AI</span>
-
-      <a
-        id="download"
-        class="download"
-        href="#"
-        target="_blank">
-        Download
-      </a>
-
-    </div>
-
-  </div>
+  <a id="downloadBtn"
+     class="download"
+     href="#"
+     download="model.glb">
+     ⬇️ Download 3D Model
+  </a>
 
 </div>
 
-<script>
+</div>
 
-/* =====================================================
-   IMPORTANT
-   Put your Cloudflare Worker URL here.
-   Do NOT put your Tripo API key here.
-   ===================================================== */
+<footer>
+  Powered by Stable Fast 3D
+</footer>
 
-const BASE_URL = "https://muddy-paper-4f8b.manpreetpatel886.workers.dev";
+<script type="module">
 
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("preview");
+const generateBtn = document.getElementById("generateBtn");
+const status = document.getElementById("status");
+const viewerBox = document.getElementById("viewerBox");
+const viewer = document.getElementById("viewer");
+const downloadBtn = document.getElementById("downloadBtn");
 
-const photoInput =
-  document.getElementById("photo");
+let selectedFile = null;
 
-const preview =
-  document.getElementById("preview");
+fileInput.addEventListener("change", () => {
 
-const generateBtn =
-  document.getElementById("generateBtn");
+  selectedFile = fileInput.files[0];
 
-const statusBox =
-  document.getElementById("status");
-
-const viewer =
-  document.getElementById("viewer");
-
-const modelViewer =
-  document.getElementById("model");
-
-const downloadBtn =
-  document.getElementById("download");
-
-
-/* Photo selection */
-
-photoInput.addEventListener("change", () => {
-
-  const file = photoInput.files[0];
-
-  if (!file) return;
-
-  if (file.size > 20 * 1024 * 1024) {
-
-    statusBox.textContent =
-      "Image must be smaller than 20 MB.";
-
-    photoInput.value = "";
-
+  if(!selectedFile){
+    generateBtn.disabled = true;
     return;
   }
 
-  preview.src =
-    URL.createObjectURL(file);
-
+  preview.src = URL.createObjectURL(selectedFile);
   preview.style.display = "block";
 
-  statusBox.textContent =
-    "Photo selected.";
+  viewerBox.style.display = "none";
+
+  generateBtn.disabled = false;
+
+  status.textContent = "✅ Photo selected. Now tap Generate 3D Model.";
 
 });
 
 
-/* Generate button */
+generateBtn.addEventListener("click", async () => {
 
-generateBtn.addEventListener(
-  "click",
-  generate3D
-);
-
-
-/* Main generation function */
-
-async function generate3D() {
-
-  const file =
-    photoInput.files[0];
-
-  if (!file) {
-
-    statusBox.textContent =
-      "Please select a photo first.";
-
-    return;
-  }
-
-  if (
-    !BASE_URL ||
-    BASE_URL.includes("PASTE-YOUR")
-  ) {
-
-    statusBox.textContent =
-      "Cloudflare Worker URL is not configured.";
-
-    return;
-  }
+  if(!selectedFile) return;
 
   generateBtn.disabled = true;
 
-  viewer.style.display = "none";
-
+  status.textContent =
+    "⏳ Connecting to free AI server...";
 
   try {
 
-    /* =========================================
-       STEP 1 — Upload image
-       ========================================= */
+    const client =
+      await window.gradioClient.connect(
+        "stabilityai/stable-fast-3d"
+      );
 
-    statusBox.textContent =
-      "Uploading photo...";
+    status.textContent =
+      "⏳ AI is creating your 3D model... Please wait.";
 
+    const imageFile =
+      await window.handleGradioFile(selectedFile);
 
-    const formData =
-      new FormData();
+    /*
+      Official Stable Fast 3D Space currently exposes
+      run_button with these inputs:
 
-    formData.append(
-      "file",
-      file,
-      file.name
+      Run
+      input image
+      background state
+      foreground ratio
+      remeshing
+      vertex count
+      texture size
+    */
+
+    const result = await client.predict(
+      "/run_button",
+      [
+        "Run",
+        imageFile,
+        imageFile,
+        0.85,
+        "None",
+        -1,
+        1024
+      ]
     );
 
+    const output = result.data[4];
 
-    const uploadResponse =
-      await fetch(
-        `${BASE_URL}/files`,
-        {
-          method: "POST",
-          body: formData
-        }
-      );
-
-
-    const uploadData =
-      await uploadResponse.json();
-
-
-    if (
-      !uploadResponse.ok ||
-      uploadData.code !== 0
-    ) {
-
-      throw new Error(
-        uploadData.message ||
-        "Image upload failed."
-      );
-
+    if(!output){
+      throw new Error("3D model was not returned.");
     }
 
+    let modelUrl = null;
 
-    const fileToken =
-      uploadData.data.file_token;
-
-
-    /* =========================================
-       STEP 2 — Create 3D task
-       ========================================= */
-
-    statusBox.textContent =
-      "AI is creating your 3D model...";
-
-
-    const taskResponse =
-      await fetch(
-        `${BASE_URL}/generation/image-to-model`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body: JSON.stringify({
-
-            input: fileToken,
-
-            model:
-              "v3.1-20260211",
-
-            texture: true,
-
-            pbr: true,
-
-            texture_quality:
-              "detailed",
-
-            enable_image_autofix:
-              true,
-
-            orientation:
-              "align_image"
-
-          })
-        }
-      );
-
-
-    const taskData =
-      await taskResponse.json();
-
-
-    if (
-      !taskResponse.ok ||
-      taskData.code !== 0
-    ) {
-
-      throw new Error(
-        taskData.message ||
-        "Could not create 3D task."
-      );
-
+    if(typeof output === "string"){
+      modelUrl = output;
     }
 
-
-    const taskId =
-      taskData.data.task_id;
-
-
-    /* =========================================
-       STEP 3 — Check task progress
-       ========================================= */
-
-    let finished = false;
-
-
-    while (!finished) {
-
-      await new Promise(
-        resolve =>
-          setTimeout(resolve, 3000)
-      );
-
-
-      const checkResponse =
-        await fetch(
-          `${BASE_URL}/tasks/${taskId}`
-        );
-
-
-      const checkData =
-        await checkResponse.json();
-
-
-      if (
-        !checkResponse.ok ||
-        checkData.code !== 0
-      ) {
-
-        throw new Error(
-          checkData.message ||
-          "Could not check task."
-        );
-
-      }
-
-
-      const task =
-        checkData.data;
-
-
-      const progress =
-        task.progress || 0;
-
-
-      statusBox.textContent =
-        `Creating 3D model... ${progress}%`;
-
-
-      /* Success */
-
-      if (
-        task.status === "success"
-      ) {
-
-        finished = true;
-
-
-        const modelUrl =
-          task.output.model_url;
-
-
-        if (!modelUrl) {
-
-          throw new Error(
-            "3D model URL was not returned."
-          );
-
-        }
-
-
-        /* =====================================
-           STEP 4 — Show model
-           ===================================== */
-
-        modelViewer.src =
-          modelUrl;
-
-
-        downloadBtn.href =
-          modelUrl;
-
-
-        viewer.style.display =
-          "block";
-
-
-        statusBox.textContent =
-          "✅ 3D model ready!";
-
-
-        viewer.scrollIntoView({
-          behavior: "smooth"
-        });
-
-      }
-
-
-      /* Failed */
-
-      if (
-        task.status === "failed" ||
-        task.status === "cancelled" ||
-        task.status === "banned"
-      ) {
-
-        throw new Error(
-          `3D generation ${task.status}.`
-        );
-
-      }
-
+    else if(output.url){
+      modelUrl = output.url;
     }
 
+    else if(output.path){
+      modelUrl = output.path;
+    }
 
-  } catch (error) {
+    if(!modelUrl){
+      throw new Error("Could not read generated model.");
+    }
 
-    console.error(error);
+    viewer.src = modelUrl;
 
-    statusBox.textContent =
-      "❌ " +
-      (
-        error.message ||
-        "Something went wrong."
-      );
+    downloadBtn.href = modelUrl;
 
+    viewerBox.style.display = "block";
 
-  } finally {
-
-    generateBtn.disabled =
-      false;
+    status.textContent =
+      "✅ 3D Model ready! You can rotate it below.";
 
   }
 
-}
+  catch(error){
+
+    console.error(error);
+
+    status.textContent =
+      "❌ Generation failed: " +
+      (error.message || "Please try again.");
+
+  }
+
+  finally{
+
+    generateBtn.disabled = false;
+
+  }
+
+});
 
 </script>
 
